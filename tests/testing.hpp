@@ -106,3 +106,54 @@ class TempDir {
   } while (false)
 
 #define CHECK_EQ(a, b) ::fdr_test::check_eq((a), (b), #a, #b, __FILE__, __LINE__)
+
+// ---- recording helpers shared by the storage tests ----
+
+#include "fdr/record.hpp"
+#include "fdr/writer.hpp"
+
+namespace fdr_test {
+
+// Deterministic records with strictly increasing timestamps and payloads of
+// 0..max_payload bytes.
+inline std::vector<fdr::Record> make_records(std::size_t count, std::uint64_t seed,
+                                             std::size_t max_payload = 120,
+                                             std::uint64_t start_ts = 1000) {
+  std::uint64_t state = seed * 6364136223846793005ULL + 1442695040888963407ULL;
+  auto next = [&state]() {
+    state ^= state << 13U;
+    state ^= state >> 7U;
+    state ^= state << 17U;
+    return state;
+  };
+  std::vector<fdr::Record> records;
+  std::uint64_t ts = start_ts;
+  for (std::size_t i = 0; i < count; ++i) {
+    fdr::Record r;
+    ts += 1 + next() % 1000;
+    r.timestamp_us = ts;
+    r.channel = static_cast<std::uint16_t>(next() % 4);
+    r.payload.resize(static_cast<std::size_t>(next() % (max_payload + 1)));
+    for (auto& b : r.payload) {
+      b = static_cast<std::uint8_t>(next() & 0xFFU);
+    }
+    records.push_back(std::move(r));
+  }
+  return records;
+}
+
+inline void write_all(const std::filesystem::path& dir, const std::vector<fdr::Record>& records,
+                      std::uint64_t segment_bytes = 4096,
+                      fdr::SyncPolicy sync = fdr::SyncPolicy::kNone) {
+  fdr::WriterConfig config;
+  config.dir = dir;
+  config.segment_bytes = segment_bytes;
+  config.sync = sync;
+  fdr::Writer writer(config);
+  for (const auto& r : records) {
+    writer.append(r);
+  }
+  writer.close();
+}
+
+}  // namespace fdr_test
