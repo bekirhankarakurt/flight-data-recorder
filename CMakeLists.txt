@@ -31,6 +31,10 @@ add_library(fdr_core STATIC ${FDR_SOURCES})
 target_include_directories(fdr_core PUBLIC include)
 target_link_libraries(fdr_core PUBLIC fdr_options)
 
+add_executable(fdr apps/fdr.cpp)
+target_link_libraries(fdr PRIVATE fdr_core)
+install(TARGETS fdr RUNTIME DESTINATION bin)
+
 if(FDR_BUILD_TESTS)
   enable_testing()
   add_subdirectory(tests)

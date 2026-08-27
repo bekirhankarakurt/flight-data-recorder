@@ -20,7 +20,7 @@ class Pacer {
 };
 
 // Real-time pacer on the monotonic clock.
-class SteadyPacer final : public Pacer {
+class SteadyPacer : public Pacer {
  public:
   [[nodiscard]] std::chrono::microseconds now() override;
   void sleep_until(std::chrono::microseconds when) override;
