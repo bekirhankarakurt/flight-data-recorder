@@ -40,5 +40,9 @@ set -e
 "$fdr" record "$rec" --count 10 | grep -q '^recorded 10 records' || fail "resume after recover"
 "$fdr" info "$rec" | grep -q '^records:    3009$' || fail "records after resume"
 
+# A recording that ends in the future can still be extended with the default start time.
+"$fdr" record "$work/future" --start-us 4000000000000000 --count 5 >/dev/null
+"$fdr" record "$work/future" --count 5 | grep -q '^recorded 5 records' || fail "default start after future data"
+
 if "$fdr" nonsense 2>/dev/null; then fail "unknown command accepted"; fi
 echo "cli smoke test passed"

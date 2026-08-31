@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
+#include <optional>
 #include <vector>
 
 #include "fdr/fd.hpp"
@@ -56,6 +57,11 @@ class Writer {
   void close();
 
   [[nodiscard]] const WriterStats& stats() const noexcept { return stats_; }
+  // Timestamp of the newest record on disk or appended, if any.
+  [[nodiscard]] std::optional<std::uint64_t> last_timestamp_us() const noexcept {
+    return has_last_timestamp_ ? std::optional<std::uint64_t>(last_timestamp_us_)
+                               : std::nullopt;
+  }
   // What recovery found when the directory was opened.
   [[nodiscard]] const RecoveryReport& recovery() const noexcept { return recovery_; }
 
