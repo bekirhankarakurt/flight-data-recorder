@@ -46,7 +46,7 @@ FrameResult parse_frame(const std::uint8_t* data, std::size_t avail, Record* out
   if (avail < total) {
     return {FrameStatus::kTruncated, 0};
   }
-  const std::uint32_t stored = get_le<std::uint32_t>(data + kFrameHeaderSize + n);
+  const auto stored = get_le<std::uint32_t>(data + kFrameHeaderSize + n);
   if (crc32(data + 4, kFrameHeaderSize - 4 + n) != stored) {
     return {FrameStatus::kBadCrc, 0};
   }

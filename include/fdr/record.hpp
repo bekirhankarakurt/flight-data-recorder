@@ -38,7 +38,7 @@ constexpr std::size_t kFrameTrailerSize = 4;
 constexpr std::size_t kFrameOverhead = kFrameHeaderSize + kFrameTrailerSize;
 constexpr std::size_t kMaxPayloadSize = 65536;
 
-enum class FrameStatus {
+enum class FrameStatus : std::uint8_t {
   kOk,         // a complete, CRC-valid frame
   kTruncated,  // the buffer ends before the frame does
   kBadSync,    // the sync marker is missing

@@ -14,7 +14,12 @@ namespace fdr {
 // without sleeping.
 class Pacer {
  public:
+  Pacer() = default;
   virtual ~Pacer() = default;
+  Pacer(const Pacer&) = delete;
+  Pacer& operator=(const Pacer&) = delete;
+  Pacer(Pacer&&) = delete;
+  Pacer& operator=(Pacer&&) = delete;
   [[nodiscard]] virtual std::chrono::microseconds now() = 0;
   virtual void sleep_until(std::chrono::microseconds when) = 0;
 };

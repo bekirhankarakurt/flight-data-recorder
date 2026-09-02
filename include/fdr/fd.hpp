@@ -36,6 +36,10 @@ class UniqueFd {
   int fd_ = -1;
 };
 
+// open(2) wrapper (the only variadic call in the code base). Throws
+// std::system_error on failure. O_CLOEXEC is always added.
+[[nodiscard]] UniqueFd open_file(const std::filesystem::path& path, int flags, unsigned mode = 0);
+
 // Throws std::system_error built from the current errno.
 [[noreturn]] void throw_errno(const char* what, const std::filesystem::path& path);
 

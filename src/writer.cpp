@@ -3,7 +3,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <cerrno>
+#include <exception>
+#include <iostream>
 #include <stdexcept>
 #include <system_error>
 
@@ -38,12 +41,11 @@ Writer::Writer(WriterConfig config) : config_(std::move(config)) {
   }
   std::filesystem::create_directories(config_.dir);
   recovery_ = recover(config_.dir, true);
-  for (auto it = recovery_.segments.rbegin(); it != recovery_.segments.rend(); ++it) {
-    if (it->records != 0) {
-      last_timestamp_us_ = it->last_timestamp_us;
-      has_last_timestamp_ = true;
-      break;
-    }
+  const auto newest = std::find_if(recovery_.segments.rbegin(), recovery_.segments.rend(),
+                                   [](const SegmentReport& s) { return s.records != 0; });
+  if (newest != recovery_.segments.rend()) {
+    last_timestamp_us_ = newest->last_timestamp_us;
+    has_last_timestamp_ = true;
   }
   if (!recovery_.segments.empty()) {
     resume_segment(recovery_.segments.back());
@@ -54,16 +56,14 @@ Writer::Writer(WriterConfig config) : config_(std::move(config)) {
 Writer::~Writer() {
   try {
     close();
-  } catch (...) {
-    // Destructors must not throw; call close() to observe errors.
+  } catch (const std::exception& e) {
+    // Destructors must not throw; call close() to handle errors yourself.
+    std::cerr << "fdr: failed to finalise segment: " << e.what() << "\n";
   }
 }
 
 void Writer::resume_segment(const SegmentReport& segment) {
-  fd_.reset(::open(segment.path.c_str(), O_WRONLY | O_CLOEXEC));
-  if (!fd_.valid()) {
-    throw_errno("open", segment.path);
-  }
+  fd_ = open_file(segment.path, O_WRONLY);
   segment_path_ = segment.path;
   offset_ = segment.valid_end;
   next_sequence_ = segment.sequence + 1;
@@ -75,10 +75,7 @@ void Writer::resume_segment(const SegmentReport& segment) {
 void Writer::open_new_segment(std::uint64_t base_timestamp_us) {
   const std::uint32_t sequence = next_sequence_;
   segment_path_ = config_.dir / segment_file_name(sequence);
-  fd_.reset(::open(segment_path_.c_str(), O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0644));
-  if (!fd_.valid()) {
-    throw_errno("create", segment_path_);
-  }
+  fd_ = open_file(segment_path_, O_WRONLY | O_CREAT | O_EXCL, 0644);
   std::uint8_t header[kSegmentHeaderSize];
   encode_segment_header({sequence, base_timestamp_us}, header);
   pwrite_all(fd_, header, sizeof(header), 0, segment_path_);
