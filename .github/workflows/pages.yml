@@ -1,0 +1,86 @@
+name: Docs and coverage
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install gcovr
+        run: pip install gcovr
+      - name: Build with coverage
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="--coverage -O0"
+          cmake --build build -j
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+      - name: Report
+        run: |
+          mkdir -p site/coverage
+          gcovr -r . --filter 'src/' --filter 'include/' build \
+            --html-details site/coverage/index.html \
+            --json-summary site/summary.json --print-summary
+          python3 - <<'PY'
+          import json
+          pct = json.load(open("site/summary.json"))["line_percent"]
+          color = "brightgreen" if pct >= 90 else "green" if pct >= 80 else "yellow" if pct >= 60 else "red"
+          badge = {"schemaVersion": 1, "label": "coverage", "message": f"{pct:.0f}%", "color": color}
+          json.dump(badge, open("site/coverage.json", "w"))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage-site
+          path: site
+
+  docs:
+    name: API docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Doxygen
+        run: sudo apt-get update && sudo apt-get install -y doxygen
+      - name: Build docs
+        run: doxygen Doxyfile
+      - uses: actions/upload-artifact@v4
+        with:
+          name: api-docs
+          path: build-docs/html
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: [coverage, docs]
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: api-docs
+          path: site
+      - uses: actions/download-artifact@v4
+        with:
+          name: coverage-site
+          path: site
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4
