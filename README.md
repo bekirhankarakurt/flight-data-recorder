@@ -3,9 +3,16 @@
 Power-loss tolerant black-box recorder in C++17: CRC-framed, append-only segmented storage that recovers cleanly after a crash, with time-range queries, paced replay and CSV export.
 
 [![CI](https://github.com/bekirhankarakurt/flight-data-recorder/actions/workflows/ci.yml/badge.svg)](https://github.com/bekirhankarakurt/flight-data-recorder/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/bekirhankarakurt/flight-data-recorder/actions/workflows/codeql.yml/badge.svg)](https://github.com/bekirhankarakurt/flight-data-recorder/actions/workflows/codeql.yml)
+[![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fbekirhankarakurt.github.io%2Fflight-data-recorder%2Fcoverage.json)](https://bekirhankarakurt.github.io/flight-data-recorder/coverage/)
+[![Release](https://img.shields.io/github/v/release/bekirhankarakurt/flight-data-recorder)](https://github.com/bekirhankarakurt/flight-data-recorder/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![C++17](https://img.shields.io/badge/C%2B%2B-17-00599C.svg)
 ![Platform: Linux](https://img.shields.io/badge/platform-Linux-lightgrey.svg)
+
+![fdr demo](docs/demo.gif)
+
+**Documentation:** [API reference](https://bekirhankarakurt.github.io/flight-data-recorder/) · [coverage report](https://bekirhankarakurt.github.io/flight-data-recorder/coverage/) · [changelog](CHANGELOG.md) · [contributing](CONTRIBUTING.md) · [security policy](SECURITY.md)
 
 ## Why / what
 
@@ -97,6 +104,8 @@ build/fdr replay flight1 --speed 4 | head
 | `FDR_BUILD_TESTS` | `ON` | Build the unit tests and CLI smoke test |
 | `FDR_WARNINGS_AS_ERRORS` | `OFF` | Add `-Werror` (CI turns it on) |
 | `FDR_SANITIZE` | `OFF` | Build with AddressSanitizer + UBSan |
+
+Prebuilt `linux-x86_64` and `linux-aarch64` binaries are attached to each [release](https://github.com/bekirhankarakurt/flight-data-recorder/releases).
 
 All targets compile warning-free with `-Wall -Wextra -Wpedantic -Wshadow -Wconversion`.
 
@@ -230,7 +239,7 @@ ctest --test-dir build --output-on-failure
 | `test_replay` | Pacing with a fake clock, filters, CSV format, UDP over loopback, simulator determinism |
 | `cli_smoke` | End-to-end run of every command, including exit codes |
 
-CI runs GCC and Clang (Release, `-Werror`) plus a GCC ASan/UBSan job. For the sanitizer build locally:
+CI runs GCC and Clang (Release, `-Werror`), a GCC ASan/UBSan job, cppcheck, clang-tidy and CodeQL; line coverage is published with the docs. For the sanitizer build locally:
 
 ```bash
 cmake -S . -B build-asan -DCMAKE_BUILD_TYPE=Debug -DFDR_SANITIZE=ON && cmake --build build-asan -j && ctest --test-dir build-asan
@@ -272,8 +281,11 @@ cmake -S . -B build-asan -DCMAKE_BUILD_TYPE=Debug -DFDR_SANITIZE=ON && cmake --b
 │   └── timearg.hpp          time and integer argument parsing
 ├── src/                     implementations of the headers above
 ├── apps/fdr.cpp             command line tool
+├── docs/                    demo.tape (vhs script) and demo.gif
 ├── tests/                   dependency-free test harness and suites
-└── .github/workflows/ci.yml GCC, Clang and sanitizer jobs
+├── .clang-tidy, Doxyfile    static analysis and API docs configuration
+├── CHANGELOG.md, CONTRIBUTING.md, SECURITY.md
+└── .github/                 workflows (CI, CodeQL, Pages, Release), issue and PR templates, Dependabot
 ```
 
 ## Roadmap
