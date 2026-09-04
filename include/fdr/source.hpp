@@ -45,7 +45,8 @@ class SimSource final : public Source {
   float noise() noexcept;  // uniform in [-1, 1]
 
   SimConfig config_;
-  std::uint64_t state_;
+  static constexpr std::uint64_t kDefaultState = 0x9E3779B97F4A7C15ULL;
+  std::uint64_t state_ = kDefaultState;
   std::uint64_t produced_ = 0;
 };
 

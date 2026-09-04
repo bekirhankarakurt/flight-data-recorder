@@ -32,7 +32,7 @@ bool parse_segment_name(const std::string& name, std::uint32_t& sequence) {
   }
   sequence = std::accumulate(digits.begin(), digits.end(), std::uint32_t{0},
                              [](std::uint32_t acc, char c) {
-                               return acc * 10U + static_cast<std::uint32_t>(c - '0');
+                               return (acc * 10U) + static_cast<std::uint32_t>(c - '0');
                              });
   return true;
 }
