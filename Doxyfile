@@ -1,7 +1,7 @@
 PROJECT_NAME           = "flight-data-recorder"
 PROJECT_BRIEF          = "Power-loss tolerant black-box recorder in C++17"
 OUTPUT_DIRECTORY       = build-docs
-INPUT                  = include README.md
+INPUT                  = include README.md CHANGELOG.md CONTRIBUTING.md SECURITY.md
 USE_MDFILE_AS_MAINPAGE = README.md
 FILE_PATTERNS          = *.hpp *.md
 RECURSIVE              = YES
