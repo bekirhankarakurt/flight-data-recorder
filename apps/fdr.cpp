@@ -174,12 +174,16 @@ int cmd_record(const std::vector<std::string>& argv) {
   config.interval = std::chrono::milliseconds(args.u64("--interval-ms", 100));
   config.preallocate = !args.has("--no-prealloc");
 
+  fdr::Writer writer(config);
   const std::string kind = args.str("--source", "sim");
   std::unique_ptr<fdr::Source> source;
   if (kind == "sim") {
     fdr::SimConfig sim;
     sim.seed = args.u64("--seed", 1);
-    sim.start_us = args.u64("--start-us", wall_clock_us());
+    // Default: now, but never earlier than the newest record already stored.
+    const std::uint64_t floor_us =
+        writer.last_timestamp_us() ? *writer.last_timestamp_us() + 1 : 0;
+    sim.start_us = args.u64("--start-us", std::max(wall_clock_us(), floor_us));
     sim.rate_hz = static_cast<std::uint32_t>(args.u64("--rate", 100));
     sim.count = args.u64("--count", 1000);
     source = std::make_unique<fdr::SimSource>(sim);
@@ -196,7 +200,6 @@ int cmd_record(const std::vector<std::string>& argv) {
   const std::uint64_t limit = kind == "udp" ? args.u64("--count", 0) : 0;
   const bool realtime = args.has("--realtime") && kind == "sim";
 
-  fdr::Writer writer(config);
   const fdr::RecoveryReport& recovered = writer.recovery();
   if (recovered.truncated_bytes != 0 || recovered.removed_segments != 0 ||
       recovered.corrupt_regions != 0) {
