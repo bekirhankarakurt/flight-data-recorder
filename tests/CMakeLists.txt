@@ -5,3 +5,8 @@ foreach(test_src IN LISTS FDR_TEST_SOURCES)
   target_link_libraries(${test_name} PRIVATE fdr_core)
   add_test(NAME ${test_name} COMMAND ${test_name})
 endforeach()
+
+find_program(FDR_BASH bash)
+if(FDR_BASH)
+  add_test(NAME cli_smoke COMMAND ${FDR_BASH} ${CMAKE_CURRENT_SOURCE_DIR}/cli_smoke.sh $<TARGET_FILE:fdr>)
+endif()
