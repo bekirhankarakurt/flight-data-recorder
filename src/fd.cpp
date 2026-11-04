@@ -16,6 +16,24 @@ void UniqueFd::reset(int fd) noexcept {
   fd_ = fd;
 }
 
+namespace {
+
+// The single place the variadic open(2) is called.
+UniqueFd raw_open(const std::filesystem::path& path, int flags, unsigned mode) noexcept {
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg,hicpp-vararg)
+  return UniqueFd(::open(path.c_str(), flags | O_CLOEXEC, mode));
+}
+
+}  // namespace
+
+UniqueFd open_file(const std::filesystem::path& path, int flags, unsigned mode) {
+  UniqueFd fd = raw_open(path, flags, mode);
+  if (!fd.valid()) {
+    throw_errno("open", path);
+  }
+  return fd;
+}
+
 void throw_errno(const char* what, const std::filesystem::path& path) {
   const int err = errno;
   throw std::system_error(err, std::generic_category(),
@@ -24,10 +42,7 @@ void throw_errno(const char* what, const std::filesystem::path& path) {
 
 std::vector<std::uint8_t> read_file(const std::filesystem::path& path,
                                     std::uint64_t offset) {
-  UniqueFd fd(::open(path.c_str(), O_RDONLY | O_CLOEXEC));
-  if (!fd.valid()) {
-    throw_errno("open", path);
-  }
+  const UniqueFd fd = open_file(path, O_RDONLY);
   struct stat st {};
   if (::fstat(fd.get(), &st) != 0) {
     throw_errno("stat", path);
@@ -73,7 +88,7 @@ void pwrite_all(const UniqueFd& fd, const std::uint8_t* data, std::size_t size,
 }
 
 void sync_directory(const std::filesystem::path& dir) noexcept {
-  UniqueFd fd(::open(dir.c_str(), O_RDONLY | O_DIRECTORY | O_CLOEXEC));
+  const UniqueFd fd = raw_open(dir, O_RDONLY | O_DIRECTORY, 0);
   if (fd.valid()) {
     (void)::fsync(fd.get());
   }

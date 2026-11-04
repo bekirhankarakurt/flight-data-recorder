@@ -2,8 +2,8 @@
 
 namespace fdr {
 
-CsvSink::CsvSink(std::ostream& out) : out_(out) {
-  out_ << "timestamp_us,channel,length,payload_hex\n";
+CsvSink::CsvSink(std::ostream& out) : out_(&out) {
+  *out_ << "timestamp_us,channel,length,payload_hex\n";
 }
 
 void CsvSink::emit(const Record& record) {
@@ -14,7 +14,7 @@ void CsvSink::emit(const Record& record) {
     hex.push_back(kHex[b >> 4U]);
     hex.push_back(kHex[b & 0x0FU]);
   }
-  out_ << record.timestamp_us << ',' << record.channel << ',' << record.payload.size() << ','
+  *out_ << record.timestamp_us << ',' << record.channel << ',' << record.payload.size() << ','
        << hex << '\n';
 }
 

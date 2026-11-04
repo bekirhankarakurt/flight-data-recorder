@@ -70,7 +70,7 @@ export / replay options:
 
 volatile std::sig_atomic_t g_stop = 0;
 
-void on_signal(int) { g_stop = 1; }
+void on_signal(int /*signal*/) { g_stop = 1; }
 
 class UsageError : public std::runtime_error {
  public:
@@ -181,8 +181,8 @@ int cmd_record(const std::vector<std::string>& argv) {
     fdr::SimConfig sim;
     sim.seed = args.u64("--seed", 1);
     // Default: now, but never earlier than the newest record already stored.
-    const std::uint64_t floor_us =
-        writer.last_timestamp_us() ? *writer.last_timestamp_us() + 1 : 0;
+    const auto newest = writer.last_timestamp_us();
+    const std::uint64_t floor_us = newest ? *newest + 1 : 0;
     sim.start_us = args.u64("--start-us", std::max(wall_clock_us(), floor_us));
     sim.rate_hz = static_cast<std::uint32_t>(args.u64("--rate", 100));
     sim.count = args.u64("--count", 1000);

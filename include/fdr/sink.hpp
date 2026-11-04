@@ -12,7 +12,12 @@ namespace fdr {
 // Where records go when exporting or replaying.
 class Sink {
  public:
+  Sink() = default;
   virtual ~Sink() = default;
+  Sink(const Sink&) = delete;
+  Sink& operator=(const Sink&) = delete;
+  Sink(Sink&&) = delete;
+  Sink& operator=(Sink&&) = delete;
   virtual void emit(const Record& record) = 0;
 };
 
@@ -23,7 +28,7 @@ class CsvSink final : public Sink {
   void emit(const Record& record) override;
 
  private:
-  std::ostream& out_;
+  std::ostream* out_;
 };
 
 // Sends each payload as one UDP datagram.

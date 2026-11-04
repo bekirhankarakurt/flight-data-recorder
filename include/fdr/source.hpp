@@ -12,7 +12,12 @@ namespace fdr {
 // Where records come from while recording.
 class Source {
  public:
+  Source() = default;
   virtual ~Source() = default;
+  Source(const Source&) = delete;
+  Source& operator=(const Source&) = delete;
+  Source(Source&&) = delete;
+  Source& operator=(Source&&) = delete;
   // Produces the next record; returns false when the source is exhausted.
   [[nodiscard]] virtual bool next(Record& out) = 0;
 };

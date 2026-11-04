@@ -8,7 +8,7 @@
 
 namespace fdr {
 
-Reader::Reader(std::filesystem::path dir, std::size_t index_stride)
+Reader::Reader(const std::filesystem::path& dir, std::size_t index_stride)
     : files_(list_segments(dir)) {
   if (index_stride == 0) {
     throw std::invalid_argument("index_stride must be at least 1");

@@ -1,8 +1,10 @@
 #include "fdr/segment.hpp"
 
 #include <algorithm>
-#include <cstdio>
+#include <iomanip>
+#include <numeric>
 #include <cstring>
+#include <sstream>
 #include <system_error>
 
 #include "fdr/crc32.hpp"
@@ -28,11 +30,10 @@ bool parse_segment_name(const std::string& name, std::uint32_t& sequence) {
                    [](char c) { return c >= '0' && c <= '9'; })) {
     return false;
   }
-  std::uint32_t value = 0;
-  for (const char c : digits) {
-    value = value * 10U + static_cast<std::uint32_t>(c - '0');
-  }
-  sequence = value;
+  sequence = std::accumulate(digits.begin(), digits.end(), std::uint32_t{0},
+                             [](std::uint32_t acc, char c) {
+                               return acc * 10U + static_cast<std::uint32_t>(c - '0');
+                             });
   return true;
 }
 
@@ -61,9 +62,9 @@ bool decode_segment_header(const std::uint8_t* data, std::size_t size,
 }
 
 std::string segment_file_name(std::uint32_t sequence) {
-  char buf[32];
-  std::snprintf(buf, sizeof(buf), "fdr-%06u.seg", static_cast<unsigned>(sequence));
-  return buf;
+  std::ostringstream name;
+  name << kPrefix << std::setw(6) << std::setfill('0') << sequence << kSuffix;
+  return name.str();
 }
 
 std::vector<SegmentFile> list_segments(const std::filesystem::path& dir) {

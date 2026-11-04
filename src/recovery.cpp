@@ -1,5 +1,6 @@
 #include "fdr/recovery.hpp"
 
+#include <algorithm>
 #include <system_error>
 
 #include "fdr/fd.hpp"
@@ -12,12 +13,8 @@ bool RecoveryReport::damaged() const noexcept {
   if (torn_segments != 0 || corrupt_regions != 0 || removed_segments != 0) {
     return true;
   }
-  for (const auto& s : segments) {
-    if (!s.header_ok) {
-      return true;
-    }
-  }
-  return false;
+  return std::any_of(segments.begin(), segments.end(),
+                     [](const SegmentReport& s) { return !s.header_ok; });
 }
 
 RecoveryReport recover(const std::filesystem::path& dir, bool repair) {

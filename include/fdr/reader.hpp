@@ -44,7 +44,7 @@ struct ReadSummary {
 // not go stale or corrupt. Reading tolerates damage by resynchronising.
 class Reader {
  public:
-  explicit Reader(std::filesystem::path dir, std::size_t index_stride = 64);
+  explicit Reader(const std::filesystem::path& dir, std::size_t index_stride = 64);
 
   [[nodiscard]] const ReadSummary& summary() const noexcept { return summary_; }
   [[nodiscard]] const std::vector<IndexEntry>& index() const noexcept { return index_; }

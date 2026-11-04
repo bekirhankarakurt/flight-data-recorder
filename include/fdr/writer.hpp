@@ -14,7 +14,7 @@
 namespace fdr {
 
 // When appended data is forced to stable storage with fdatasync(2).
-enum class SyncPolicy {
+enum class SyncPolicy : std::uint8_t {
   kNone,         // leave it to the OS (fastest, loses the page cache on power loss)
   kEveryRecord,  // after each record (safest, slowest)
   kBatch,        // after every `batch_records` records
@@ -48,6 +48,8 @@ class Writer {
   ~Writer();
   Writer(const Writer&) = delete;
   Writer& operator=(const Writer&) = delete;
+  Writer(Writer&&) = delete;
+  Writer& operator=(Writer&&) = delete;
 
   void append(const Record& record);
   // Forces everything appended so far to stable storage.
