@@ -110,9 +110,11 @@ TEST(frame_status_codes) {
   bad_sync[0] = 0;
   CHECK(fdr::parse_frame(bad_sync.data(), bad_sync.size(), nullptr).status ==
         fdr::FrameStatus::kBadSync);
-  auto bad_len = bytes;
-  fdr::put_le<std::uint32_t>(bad_len.data() + 4, 0xFFFFFFFFU);
-  CHECK(fdr::parse_frame(bad_len.data(), bad_len.size(), nullptr).status ==
+  std::uint8_t bad_len[fdr::kFrameOverhead + 8];
+  CHECK_EQ(bytes.size(), sizeof(bad_len));
+  std::memcpy(bad_len, bytes.data(), sizeof(bad_len));
+  fdr::put_le<std::uint32_t>(bad_len + 4, 0xFFFFFFFFU);
+  CHECK(fdr::parse_frame(bad_len, sizeof(bad_len), nullptr).status ==
         fdr::FrameStatus::kBadLength);
   bytes.back() = static_cast<std::uint8_t>(bytes.back() ^ 0xFFU);
   CHECK(fdr::parse_frame(bytes.data(), bytes.size(), nullptr).status ==
