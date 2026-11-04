@@ -41,7 +41,7 @@ jobs:
           badge = {"schemaVersion": 1, "label": "coverage", "message": f"{pct:.0f}%", "color": color}
           json.dump(badge, open("site/coverage.json", "w"))
           PY
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: coverage-site
           path: site
@@ -55,7 +55,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y doxygen
       - name: Build docs
         run: doxygen Doxyfile
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: api-docs
           path: build-docs/html
