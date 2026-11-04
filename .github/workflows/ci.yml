@@ -16,7 +16,7 @@ jobs:
           - compiler: g++
           - compiler: clang++
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Configure
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DFDR_WARNINGS_AS_ERRORS=ON
       - name: Build
@@ -28,7 +28,7 @@ jobs:
     name: GCC ASan + UBSan (Debug)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Configure
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=g++ -DFDR_WARNINGS_AS_ERRORS=ON -DFDR_SANITIZE=ON
       - name: Build
@@ -40,7 +40,7 @@ jobs:
     name: cppcheck + clang-tidy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install tools
         run: sudo apt-get update && sudo apt-get install -y cppcheck clang-tidy
       - name: cppcheck
